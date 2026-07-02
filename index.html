@@ -25,7 +25,7 @@
   }
   #stamp {
     position: fixed;
-    bottom: 72px;
+    bottom: 20px;
     left: 16px;
     font: 10px/1.4 system-ui, -apple-system, sans-serif;
     color: rgba(255,255,255,0.4);
@@ -35,7 +35,7 @@
   }
   #legend {
     position: fixed;
-    bottom: 72px;
+    bottom: 44px;
     left: 0; right: 0;
     display: flex;
     align-items: center;
@@ -50,7 +50,7 @@
   #legend .sep { opacity: 0.3; }
   #desc {
     position: fixed;
-    bottom: 20px;
+    bottom: 68px;
     left: 0; right: 0;
     text-align: center;
     font: 11px/1.5 system-ui, -apple-system, sans-serif;
@@ -346,15 +346,15 @@ function draw(now) {
 
     ctx.shadowBlur = 0;
 
-    if (org.fadeIn > 0.3) {
+    if (org.fadeIn > 0.1) {
       ctx.globalAlpha = alpha * A.label;
       ctx.fillStyle = P.warmth;
-      ctx.font = '9px system-ui, -apple-system, sans-serif';
+      ctx.font = '11px system-ui, -apple-system, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`${org.sst.toFixed(1)}° · ${org.wave.toFixed(1)}m`, pos.x, pos.y + r + 14);
+      ctx.fillText(`${org.sst.toFixed(1)}°C · wave ${org.wave.toFixed(1)}m`, pos.x, pos.y + r + 16);
       ctx.fillStyle = P.text;
-      ctx.font = '9px system-ui, -apple-system, sans-serif';
-      ctx.fillText(org.name, pos.x, pos.y + r + 26);
+      ctx.font = 'bold 11px system-ui, -apple-system, sans-serif';
+      ctx.fillText(org.name, pos.x, pos.y + r + 32);
     }
 
     if (isSelected && sel > 0.05) {
