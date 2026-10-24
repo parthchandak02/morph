@@ -115,7 +115,7 @@ const P = {
   accent: '#e0e0e0',
   glow: 'rgba(224,224,224,0.15)',
   text: 'rgba(255,255,255,0.5)',
-  warmth: 'rgba(200,200,200,0.3)',
+  warmth: 'rgba(200,200,200,0.55)',
 };
 
 const SW = { hair: 0.5, fine: 1, medium: 2, heavy: 4 };
@@ -131,8 +131,7 @@ let selectedIdx = -1;
 let selectionStrength = 0;
 let lastInteraction = 0;
 let lastFetchTime = 0;
-let dataLive = false;
-let globalSST = 0;
+let liveCount = 0;
 let t0 = performance.now();
 
 const organisms = C.cities.map((city, i) => ({
@@ -223,7 +222,6 @@ function selectCity(idx) {
   selectedIdx = idx;
   lastInteraction = performance.now();
   selectionStrength = 1;
-  globalSST = organisms[idx].sst;
 }
 
 function updateFadeIn(now) {
@@ -290,11 +288,16 @@ function updateStamp(now) {
   const ago = lastFetchTime > 0
     ? Math.round((now - lastFetchTime) / 1000)
     : 0;
-  const mode = dataLive ? 'live' : 'fallback';
+  if (!lastFetchTime) {
+    stampEl.textContent = 'Open-Meteo Marine · loading…';
+    return;
+  }
+  const n = organisms.length;
+  const mode = liveCount === n ? 'live' : liveCount === 0 ? 'fallback' : `${liveCount}/${n} live`;
   const sstStr = selectedIdx >= 0
-    ? organisms[selectedIdx].sst.toFixed(1)
-    : (globalSST || organisms[2].sst).toFixed(1);
-  stampEl.textContent = `Open-Meteo Marine · SST ${sstStr}°C · updated ${ago}s ago · ${mode}`;
+    ? `${organisms[selectedIdx].name} SST ${organisms[selectedIdx].sst.toFixed(1)}°C`
+    : `mean SST ${(organisms.reduce((s, o) => s + o.sst, 0) / n).toFixed(1)}°C · ${n} cities`;
+  stampEl.textContent = `Open-Meteo Marine · ${sstStr} · updated ${ago}s ago · ${mode}`;
 }
 
 function draw(now) {
@@ -347,7 +350,8 @@ function draw(now) {
     ctx.shadowBlur = 0;
 
     if (org.fadeIn > 0.1) {
-      ctx.globalAlpha = alpha * A.label;
+      // Labels get their own alpha so they stay readable next to the faint outlines
+      ctx.globalAlpha = org.fadeIn * (selectedIdx >= 0 && !isSelected ? 0.35 : 1);
       ctx.fillStyle = P.warmth;
       ctx.font = '11px system-ui, -apple-system, sans-serif';
       ctx.textAlign = 'center';
@@ -400,7 +404,6 @@ async function fetchAll() {
   const results = await Promise.allSettled(
     organisms.map(org => fetchCity(org))
   );
-  let allLive = true;
   results.forEach((r, i) => {
     if (r.status === 'fulfilled') {
       organisms[i].sst = r.value.sst;
@@ -408,13 +411,10 @@ async function fetchAll() {
       organisms[i].sides = sidesFromSST(r.value.sst);
       organisms[i].pulseMs = pulseFromWave(r.value.wave);
       organisms[i].isFallback = false;
-    } else {
-      allLive = false;
     }
   });
-  dataLive = allLive;
+  liveCount = organisms.filter(o => !o.isFallback).length;
   lastFetchTime = performance.now();
-  if (selectedIdx >= 0) globalSST = organisms[selectedIdx].sst;
 }
 
 canvas.addEventListener('touchstart', (e) => {
@@ -439,8 +439,6 @@ window.addEventListener('resize', resize);
 
 resize();
 drawLegendIcons();
-globalSST = organisms[2].sst;
-lastFetchTime = performance.now();
 requestAnimationFrame(loop);
 fetchAll();
 setInterval(fetchAll, C.fetchInterval);

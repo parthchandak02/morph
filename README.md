@@ -48,9 +48,9 @@ out of step. Under each one a small label gives its temperature, wave height and
 
 Click or tap a polygon to select it: it brightens, scales up, shows its temperature as a large
 number in the middle, and the others dim. After three seconds idle it fades back. The stamp
-bottom-left reads `live` only when all five cities answered; otherwise it shows built-in
-typical values and says `fallback`. Before you select a city, the temperature in that stamp is
-Sydney's built-in fallback value rather than the live one.
+bottom-left shows the mean temperature of all five cities, or the selected city's, and reads
+`live` when all five answered, `3/5 live` when only some did (the rest keep built-in typical
+values), or `fallback` when none did.
 
 ## Run it
 
